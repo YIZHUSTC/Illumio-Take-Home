@@ -57,11 +57,13 @@ class Firewall(object):
                 dict[i] = [(ip_start, ip_end)]
             else:
                 insert_start, existed_start = self.__find_position(dict[i], ip_start)
-                if existed_start:
-                    dict[i].insert(insert_start + 1, (ip_start, ip_end))
-                else:
-                    dict[i].insert(insert_start, (ip_start, ip_end))
-                dict[i] = self.__merge_range(dict[i])
+                insert_end, existed_end = self.__find_position(dict[i], ip_end)
+                if not (existed_start and existed_end and insert_start == insert_end): # if the range is not within another range
+                    if existed_start:
+                        dict[i].insert(insert_start + 1, (ip_start, ip_end))
+                    else:
+                        dict[i].insert(insert_start, (ip_start, ip_end))
+                    dict[i] = self.__merge_range(dict[i])
 
 
     # find the position in a list of ordered non-overlapping tuples (i.e. ranges)
@@ -92,7 +94,7 @@ class Firewall(object):
         return left, False
 
 
-    # merge possible overlapping ranges in a sorted range list (sort by the first element of a tuple)
+    # merge possible overlapping and adjacent ranges in a sorted range list (sort by the first element of a tuple)
     # e.g. [(1,2),(2,3),(6,8),(7,9)] - > [(1,3),(6,9)]
     def __merge_range(self, list):
         res = []
